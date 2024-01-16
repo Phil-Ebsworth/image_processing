@@ -43,7 +43,6 @@ def rgb_to_gray(image_rgb):
         An array of the shape (h, w, 1) representing the grayscaled version of the original image.
     """
 
-    
     weights = np.array([.299, .587, .114])
     height, width, colors = image_rgb.shape
     image_grey = np.zeros(shape=(height, width, 1))
