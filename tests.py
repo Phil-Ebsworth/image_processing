@@ -1,6 +1,8 @@
 from color import rgb_split
+from utils import load_image
 
 
 def test_rgb_split():
-    splits = rgb_split("Images/Flower.png")
-    assert (splits) == rgb_split("Images/Flower.png")
+    img = load_image(path_to_image='Images/Flower.png')
+    splits = rgb_split(img)
+    assert (splits) == rgb_split(img)
