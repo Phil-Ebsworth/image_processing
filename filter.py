@@ -1,5 +1,7 @@
 import numpy as np
 
+from discreteFourierTransformation import dft_1d, idft_1d
+
 
 def mean_filter(image, w):
     """Applies mean filtering to the input image.
@@ -119,3 +121,109 @@ def bilateral_filter(image, w, sigma_d, sigma_r):
     result = np.zeros_like(image)
     # TODO: 
     return result
+
+def box_filter_1d_time(y_time, w):
+    """Applies the mean filter of size 2*w+1 to the input signal.
+    
+    This function uses convolution to apply the mean filter in time domain.
+    
+    Args:
+        y_time: A numpy array with shape (n,) representing the imput signal in time domain.
+
+    Returns:
+        A numpy array with shape (n,) representing the filtered signal in time domain.
+    """
+    # pad signal periodically 
+    n = len(y_time)
+    y_time_filtered = np.zeros_like(y_time)
+
+    for i in range(n):
+        for j in range(-w, w+1):
+            y_time_filtered[i] += y_time[(i + j) % n]
+
+    y_time_filtered /= (2 * w + 1)
+    return y_time_filtered
+
+def box_filter_1d_freq(y_time, w):
+    """Applies the mean filter of size 2*w+1 to the input signal.
+    
+    This function uses dft and exploits the convolution theorem to apply the mean filter in frequency domain.
+    
+    Args:
+        y_time: A numpy array with shape (n,) representing the imput signal in time domain.
+
+    Returns:
+        A numpy array with shape (n,) representing the filtered signal in time domain.
+    """
+    y_freq = dft_1d(y_time)
+    
+    for k in range(len(y_freq)):
+        if np.abs(k) > w:
+            y_freq[k] = 0.0
+            
+    return idft_1d(y_freq).real
+
+def ideal_low_pass_filter(y_time, max_frequency):
+    """Applies an ideal low pass filter to the input signal.
+    
+    This function uses dft and exploits the convolution theorem to apply the filter in frequency domain.
+    
+
+    Args:
+        y_time: A numpy array with shape (height, width) representing the imput signal in time domain.
+        max_frequency: The maximal frequency to be preserved in the output signal.
+
+    Returns:
+        A numpy array with shape (height, width) representing the filtered signal in time domain.
+    """
+ 
+    height, width = y_time.shape
+    y_freq = np.fft.fftshift(np.fft.fft2(y_time))
+    
+    y_filtered_freq = y_freq
+    
+    lp_filter = np.zeros((height, width))
+    center_x, center_y = width // 2, height // 2
+    for y in range(height):
+        for x in range(width):
+            dist = np.sqrt((y - center_y)**2 + (x - center_x)**2)
+            if dist <= max_frequency:
+                lp_filter[y,x] = 1
+    
+    y_filtered_freq *= lp_filter
+    
+    y_filtered_time = np.fft.ifft2(np.fft.ifftshift(y_filtered_freq))
+    return y_filtered_time
+    
+    
+    
+def ideal_high_pass_filter(y_time, min_frequency):
+    """Applies an ideal low pass filter to the input signal.
+    
+    This function uses dft and exploits the convolution theorem to apply the filter in frequency domain.
+    
+
+    Args:
+        y_time: A numpy array with shape (height, width) representing the imput signal in time domain.
+        min_frequency: The minimal frequency to be preserved in the output signal.
+
+    Returns:
+        A numpy array with shape (height, width) representing the filtered signal in time domain.
+    """
+    
+    height, width = y_time.shape
+    y_freq = np.fft.fftshift(np.fft.fft2(y_time))
+    y_filtered_freq = y_freq # TODO: Exercise 7b)
+
+    hp_filter = np.zeros((height, width))
+    center_x, center_y = width // 2, height // 2
+    for y in range(height):
+        for x in range(width):
+            dist = np.sqrt((y - center_y)**2 + (x - center_x)**2)
+            if dist >= min_frequency:
+                hp_filter[y,x] = 1
+    
+    y_filtered_freq *= hp_filter
+    
+    y_filtered_time = np.fft.ifft2(np.fft.ifftshift(y_filtered_freq))
+    return y_filtered_time
