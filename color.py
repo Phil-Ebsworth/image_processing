@@ -12,11 +12,14 @@ def rgb_split(image_rgb):
         Each array represents an image where only one color channel of the original image is preserved.
         The order of the preserved channels is red, green, blue.
     """
-    height, width, colors = image_rgb.shape
-    color_seperated_images = np.zeros(shape=(height, width, colors, 3))
-    for c in range(colors):
-        color_seperated_images[:, :, c, c] = image_rgb[:, :, c]
-    return [color_seperated_images[:, :, :, _] for _ in range(3)]
+    result = []
+
+    for channel_index in range(0, image_rgb.shape[2]):
+        channel = np.empty_like(image_rgb)
+        channel[:, :, channel_index] = image_rgb[:, :, channel_index]
+        result.append(channel)
+
+    return result
 
 
 def gamma_correction(image_rgb, gamma=2.2):
@@ -29,8 +32,7 @@ def gamma_correction(image_rgb, gamma=2.2):
     Returns:
         An array of the shape (h, w, 3) representing the gamma-corrected image.
     """
-    image_rgb[:, :, :] **= gamma
-    return image_rgb
+    return np.power(image_rgb, gamma)
 
 
 def rgb_to_gray(image_rgb):
@@ -44,10 +46,13 @@ def rgb_to_gray(image_rgb):
     """
 
     weights = np.array([.299, .587, .114])
-    height, width, colors = image_rgb.shape
-    image_grey = np.zeros(shape=(height, width, 1))
-    for x in range(height):
-        for y in range(width):
-            for c in range(colors):
-                image_grey[x, y, 0] += image_rgb[x, y, c] * weights[c]
-    return image_grey
+
+    newshape = (image_rgb.shape[0], image_rgb.shape[1], 1)
+    grey_scale = np.zeros(newshape)
+
+    for (weight, channel_index) in zip(weights, range(image_rgb.shape[2])):
+        grey_scale += image_rgb[:, :, channel_index].reshape(newshape) * weight
+
+    return grey_scale
+
+

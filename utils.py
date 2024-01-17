@@ -44,6 +44,7 @@ def show_image_with_hist(image_gray, hist):
     ax_hist.set_xlabel('luminance')
     ax_hist.set_ylabel('pixel count')
     ax_hist.set_xlim([0.0, 256.0])
+    ax_hist.set_ylim([0.0, hist.max()])
     ax_hist.bar(np.arange(256), hist)
     plt.show(block=False)
 
