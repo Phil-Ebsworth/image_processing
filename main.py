@@ -16,26 +16,6 @@ def main():
     show_multiple_images([image_rgb] + splits) """
 
     # channels = ['red', 'green', 'blue']
-
-    """ image_gray = rgb_to_gray(load_image('Images/blueFlower.jpg'))
-    hist_gray = get_hist(image_gray)
-    show_image_with_hist(image_gray, hist_gray)
-
-    
-    image_gray_max_contrast = max_contrast(image_gray)
-    hist_gray_max_contrast = get_hist(image_gray_max_contrast)
-    show_image_with_hist(image_gray_max_contrast, hist_gray_max_contrast)
-
-    
-    hist_accumulated = accumulate_hist(hist_gray)
-    plot_hist(hist_accumulated)
-    
-    image_equalized = equalize_hist(image_gray, hist_accumulated)
-    hist_equalized = get_hist(image_equalized)
-    show_image_with_hist(image_equalized, hist_equalized)
-    plot_hist(accumulate_hist(hist_equalized)) """
-
-    
     
     """You may vary the parameters w and sigma to explore the effect on the resulting filtered images.
     

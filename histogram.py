@@ -1,4 +1,8 @@
+from matplotlib import pyplot as plt
 import numpy as np
+
+from color import rgb_to_gray
+from utils import load_image, plot_hist, show_image_with_hist
 
 
 def get_hist(image_gray):
@@ -13,9 +17,8 @@ def get_hist(image_gray):
     """
     hist = np.zeros(256)
 
-    for x in range(image_gray.shape[0]):
-        for y in range(image_gray.shape[1]):
-            hist[int(image_gray[x, y, 0] * 255)] += 1
+    for elem in image_gray.flatten():
+        hist[int(elem * 255)] += 1
     return hist
 
 
@@ -29,14 +32,12 @@ def max_contrast(image_gray):
         An array of the shape (h, w, 1) representing the maximal contrastive version of image_gray.
     """
 
-    height, width, colors = image_gray.shape
-    min_c = image_gray.min() * 255
-    max_c = image_gray.max() * 255
-    for x in range(height):
-        for y in range(width):
-            value = image_gray[x,y,0] * 255
-            image_gray[x,y] = (value-min_c)*(255/(max_c - min_c)) / 255
-    return image_gray
+    img = image_gray.copy()
+    min_c = img.min() * 255
+    max_c = img.max() * 255
+    for x in np.nditer(img, op_flags=['readwrite']):
+        x = (x - min_c) * (255 / (max_c - min_c)) / 255
+    return img
 
 def accumulate_hist(hist):
     """Accumulates and normalizes a given histogram.
@@ -50,9 +51,8 @@ def accumulate_hist(hist):
     accumulated_hist = np.zeros_like(hist)
 
     accumulated_hist[0] = hist[0]
-    for index in range(1, hist.size):
-        accumulated_hist[index] = accumulated_hist[index - 1] + hist[index]
-    accumulated_hist = accumulated_hist / hist.sum()
+    for i in range(1, accumulated_hist.shape[0]):
+        accumulated_hist[i] = accumulated_hist[i - 1] + hist[i]
 
     return accumulated_hist
 
@@ -66,13 +66,41 @@ def equalize_hist(image_gray, accumulated_hist):
     Returns:
         A numpy array of the shape (h, w, 1) representing the equalized image.
     """
+    height, width, color = image_gray.shape
     hist_min = accumulated_hist.min()
     hist_max = accumulated_hist.max()
 
-    def converter(x):
+    equalized_image = np.zeros_like(image_gray)
+    """ def converter(x):
         index = int(x*255)
         return (accumulated_hist[index] - hist_min) / (hist_max - hist_min)
 
-    equalized_image = np.vectorize(converter)(image_gray)
-
+    equalized_image = np.vectorize(converter)(image_gray) """
+    for i in range(height):
+        for j in range(width):
+            equalized_image[i,j] = (accumulated_hist[int(image_gray[i,j])*255] - hist_min) / (hist_max - hist_min)
     return equalized_image
+
+def main():
+    image_gray = rgb_to_gray(load_image('Images/blueFlower.jpg'))
+    hist_gray = get_hist(image_gray)
+    show_image_with_hist(image_gray, hist_gray)
+
+    
+    image_gray_max_contrast = max_contrast(image_gray)
+    hist_gray_max_contrast = get_hist(image_gray_max_contrast)
+    show_image_with_hist(image_gray_max_contrast, hist_gray_max_contrast)
+
+    
+    hist_accumulated = accumulate_hist(hist_gray)
+    plot_hist(hist_accumulated)
+    
+    image_equalized = equalize_hist(image_gray, hist_accumulated)
+    hist_equalized = get_hist(image_equalized)
+    show_image_with_hist(image_equalized, hist_equalized)
+    plot_hist(accumulate_hist(hist_equalized))
+    
+    plt.show()
+    
+if __name__ == '__main__':
+    main()
